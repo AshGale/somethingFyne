@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	src.Welcome()
+	//src.Welcome()
+	src.Mockup()
 }
