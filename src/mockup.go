@@ -5,7 +5,9 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -15,10 +17,10 @@ import (
 func Mockup() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Mockup POC")
-	myWindow.Resize(fyne.NewSize(600, 400))
+	myWindow.Resize(fyne.NewSize(800, 600))
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("Addy", getTable()),
+		container.NewTabItem("Addy", getTabContent()),
 		container.NewTabItem("Buler", widget.NewLabel("World!")),
 		container.NewTabItem("Carrie", widget.NewLabel("Hello")),
 	)
@@ -31,50 +33,85 @@ func Mockup() {
 	myWindow.ShowAndRun()
 }
 
-func getTitleFormat(dates [][]string) [][]string {
-	//for testing name all dates shown after 3rd
-	dateOffset := 4
-	hourOffset := 7
+func getTabContent() *fyne.Container {
 
-	text := ""
+	//maybe replace with static text to prevent scolling
+	topSpacer := getTopSpacer()
+	top := container.New(layout.NewBorderLayout(nil, nil, topSpacer, nil), topSpacer, getTimesTable(7, 13))
+	left := getDatesTable()
+	board := getBoard()
 
-	for i := 0; i < len(dates); i++ {
-		for j := 0; j < len(dates[i]); j++ {
-			if j+hourOffset < 12 {
-				text = fmt.Sprintf(" - %dth - \n %dam", i+dateOffset, j+hourOffset)
-			} else {
-				text = fmt.Sprintf(" - %dth - \n %dpm", i+dateOffset, j+hourOffset)
-			}
-			dates[i][j] = text
-		}
-	}
-
-	return dates
+	return container.New(layout.NewBorderLayout(top, nil, left, nil), top, left, board)
 }
 
-func getTable() *widget.Table {
+func getTopSpacer() *widget.Table {
+	table := widget.NewTable(
+		func() (int, int) {
+			return 1, 1
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("            ")
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText("            ")
+		})
 
-	//5 12
+	return table
+}
 
-	dates := make([][]string, 5)
-	for i := range dates {
-		dates[i] = make([]string, 12)
+func getBoard() *fyne.Container {
+	img := canvas.NewImageFromResource(theme.FyneLogo())
+	return container.New(layout.NewMaxLayout(), img)
+}
+
+func getTimesTable(hourOffset, duration int) *widget.Table {
+
+	times := make([]string, duration)
+	var text = ""
+
+	for i := 0; i < len(times); i++ {
+
+		if i+hourOffset < 12 {
+			text = fmt.Sprintf("%dam", i+hourOffset)
+		} else {
+			text = fmt.Sprintf(" %dpm", i+hourOffset)
+		}
+		times[i] = text
 	}
-
-	dates = getTitleFormat(dates)
 
 	table := widget.NewTable(
 		func() (int, int) {
-			return 5, 12
+			return 1, 13
 		},
 		func() fyne.CanvasObject {
-			return widget.NewLabel("Re numbers")
+			return widget.NewLabel("Hours")
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText(dates[i.Row][i.Col])
+			o.(*widget.Label).SetText(times[i.Col])
+		})
 
-			//o.(*widget.Card).SetTitle(dates[i.Row][i.Col])
+	return table
+}
 
+func getDatesTable() *widget.Table {
+	dateOffset := 4
+	dates := make([]string, 6)
+	var text = ""
+
+	for i := 0; i < len(dates); i++ {
+		text = fmt.Sprintf(" %dth", i+dateOffset)
+		dates[i] = text
+	}
+
+	table := widget.NewTable(
+		func() (int, int) {
+			return 5, 1
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("Dates")
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(dates[i.Row])
 		})
 
 	return table

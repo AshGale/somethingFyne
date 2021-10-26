@@ -7,4 +7,6 @@ import (
 func main() {
 	//src.Welcome()
 	src.Mockup()
+	//src.Grid()
+	//src.Border()
 }
