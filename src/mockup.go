@@ -1,6 +1,8 @@
 package src
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -16,9 +18,9 @@ func Mockup() {
 	myWindow.Resize(fyne.NewSize(600, 400))
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("Addy", widget.NewLabel("Hello")),
+		container.NewTabItem("Addy", getTable()),
 		container.NewTabItem("Buler", widget.NewLabel("World!")),
-		container.NewTabItem("Carrie", getTable()),
+		container.NewTabItem("Carrie", widget.NewLabel("Hello")),
 	)
 
 	tabs.Append(container.NewTabItemWithIcon("Home", theme.HomeIcon(), widget.NewLabel("Home tab")))
@@ -29,7 +31,38 @@ func Mockup() {
 	myWindow.ShowAndRun()
 }
 
+func getTitleFormat(dates [][]string) [][]string {
+	//for testing name all dates shown after 3rd
+	dateOffset := 4
+	hourOffset := 7
+
+	text := ""
+
+	for i := 0; i < len(dates); i++ {
+		for j := 0; j < len(dates[i]); j++ {
+			if j+hourOffset < 12 {
+				text = fmt.Sprintf(" - %dth - \n %dam", i+dateOffset, j+hourOffset)
+			} else {
+				text = fmt.Sprintf(" - %dth - \n %dpm", i+dateOffset, j+hourOffset)
+			}
+			dates[i][j] = text
+		}
+	}
+
+	return dates
+}
+
 func getTable() *widget.Table {
+
+	//5 12
+
+	dates := make([][]string, 5)
+	for i := range dates {
+		dates[i] = make([]string, 12)
+	}
+
+	dates = getTitleFormat(dates)
+
 	table := widget.NewTable(
 		func() (int, int) {
 			return 5, 12
@@ -38,8 +71,10 @@ func getTable() *widget.Table {
 			return widget.NewLabel("Re numbers")
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
-			//var val int = rand.Intn(10000)
-			o.(*widget.Label).SetText("number")
+			o.(*widget.Label).SetText(dates[i.Row][i.Col])
+
+			//o.(*widget.Card).SetTitle(dates[i.Row][i.Col])
+
 		})
 
 	return table
