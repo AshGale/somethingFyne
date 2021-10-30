@@ -2,10 +2,11 @@ package src
 
 import (
 	"fmt"
+	"log"
+	"net/url"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 
@@ -36,32 +37,78 @@ func Mockup() {
 func getTabContent() *fyne.Container {
 
 	//maybe replace with static text to prevent scolling
-	topSpacer := getTopSpacer()
-	top := container.New(layout.NewBorderLayout(nil, nil, topSpacer, nil), topSpacer, getTimesTable(7, 13))
 	left := getDatesTable()
+	topTimes := getTimesTable(7, 13)
+	topSpacer := getTopSpacer(left.Size().Width, topTimes.Size().Height)
+	top := container.New(layout.NewBorderLayout(nil, nil, topSpacer, nil), topSpacer, topTimes)
+
 	board := getBoard()
 
 	return container.New(layout.NewBorderLayout(top, nil, left, nil), top, left, board)
 }
 
-func getTopSpacer() *widget.Table {
-	table := widget.NewTable(
-		func() (int, int) {
-			return 1, 1
-		},
-		func() fyne.CanvasObject {
-			return widget.NewLabel("            ")
-		},
-		func(i widget.TableCellID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText("            ")
-		})
+func getTopSpacer(width, hight float32) fyne.CanvasObject {
+	// size := fyne.NewSize(width, hight)
+	// position := fyne.NewPos(0,0)
+	// spacer := layout.Spacer{true, true, size, position ,false}
+	spacer := layout.NewSpacer()
+	spacer.Resize(fyne.NewSize(width, hight))
+	return spacer
+}
 
-	return table
+func getTile(index int) *fyne.Container {
+	tile := container.New(layout.NewVBoxLayout())
+
+	url, _ := url.Parse("https://developer.fyne.io/api/v2.1/widget/hyperlink.html")
+	hyperlink := widget.NewHyperlink(fmt.Sprintf("Task %v", index), url)
+	tile.Add(hyperlink)
+
+	toolbar := widget.NewToolbar(
+		widget.NewToolbarSeparator(),
+		widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
+			log.Println("New document")
+		}),
+		//widget.NewToolbarSeparator(),
+		widget.NewToolbarAction(theme.MediaFastRewindIcon(), func() {}),
+		widget.NewToolbarAction(theme.MediaPauseIcon(), func() {
+			log.Println("tile shouldn't move now")
+		}),
+		widget.NewToolbarAction(theme.MediaFastForwardIcon(), func() {}),
+		//widget.NewToolbarSpacer(),
+		//widget.NewToolbarAction(theme.MenuIcon(), func() {}),
+
+		widget.NewToolbarSeparator(),
+	)
+
+	//tile.Border
+
+	tile.Add(toolbar)
+
+	return tile
+}
+
+func getBoardTiles() *fyne.Container {
+	var gridSize = fyne.NewSize(4, 4)
+	board := container.New(layout.NewGridLayout(int(gridSize.Width)))
+
+	for i := 0; i < int(gridSize.Width)*int(gridSize.Height); i++ {
+		//tile := widget.NewCard("title", fmt.Sprintf("%v", i), canvas.NewImageFromResource(theme.FyneLogo()))
+		tile := getTile(i)
+
+		if i == 6 || i == 8 || i == 9 {
+			board.Add(layout.NewSpacer())
+		} else {
+			board.Add(tile)
+		}
+	}
+
+	return board
 }
 
 func getBoard() *fyne.Container {
-	img := canvas.NewImageFromResource(theme.FyneLogo())
-	return container.New(layout.NewMaxLayout(), img)
+	//img := canvas.NewImageFromResource(theme.FyneLogo())
+	board := getBoardTiles()
+	return container.New(layout.NewMaxLayout(), board)
 }
 
 func getTimesTable(hourOffset, duration int) *widget.Table {
