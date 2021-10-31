@@ -2,17 +2,21 @@ package src
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"net/url"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
+
+var testColor = color.NRGBA{R: 128, G: 128, B: 128, A: 255}
 
 //A POC for a tabs with content view
 func Mockup() {
@@ -58,9 +62,20 @@ func getTopSpacer(width, hight float32) fyne.CanvasObject {
 
 func getTile(index int) *fyne.Container {
 	tile := container.New(layout.NewVBoxLayout())
+	size := fyne.NewSize(200, 100)
 
 	url, _ := url.Parse("https://developer.fyne.io/api/v2.1/widget/hyperlink.html")
 	hyperlink := widget.NewHyperlink(fmt.Sprintf("Task %v", index), url)
+	if index == 5 {
+		//test to see if you can make a object larger to fill up more space//
+		// enlarger := canvas.NewRectangle(theme.BackgroundColor())
+		enlarger := canvas.NewRectangle(testColor)
+		enlarger.SetMinSize(fyne.NewSize(size.Width*2, 1))
+		tile.Add(enlarger)
+		hyperlink.Resize(fyne.NewSize(size.Width*2, size.Height))
+	} else {
+		hyperlink.Resize(fyne.NewSize(size.Width, size.Height))
+	}
 	tile.Add(hyperlink)
 
 	toolbar := widget.NewToolbar(
@@ -74,30 +89,59 @@ func getTile(index int) *fyne.Container {
 			log.Println("tile shouldn't move now")
 		}),
 		widget.NewToolbarAction(theme.MediaFastForwardIcon(), func() {}),
-		//widget.NewToolbarSpacer(),
-		//widget.NewToolbarAction(theme.MenuIcon(), func() {}),
+		widget.NewToolbarSpacer(),
+		widget.NewToolbarAction(theme.MenuIcon(), func() {}),
 
 		widget.NewToolbarSeparator(),
 	)
-
-	//tile.Border
-
+	hyperlink.Resize(fyne.NewSize(size.Width, size.Height))
 	tile.Add(toolbar)
+
+	////Try to give a line border to a container//NO lines done touch, and are squared
+	// grey := color.NRGBA{R: 128, G: 128, B: 128, A: 255}
+	// top := canvas.NewRectangle(grey)
+	// bottom := canvas.NewRectangle(grey)
+	// left := canvas.NewRectangle(grey)
+	// right := canvas.NewRectangle(grey)
+	// top.SetMinSize(fyne.NewSize(500, 5))
+	// bottom.SetMinSize(fyne.NewSize(500, 5))
+	// left.SetMinSize(fyne.NewSize(5, 500))
+	// right.SetMinSize(fyne.NewSize(5, 500))
+
+	// tileWithBorder := container.New(layout.NewBorderLayout(top, bottom, left, right),
+	// 	top, bottom, left, right, tile)
+	// return tileWithBorder
+
+	////this just gives small space between items
+	// paddedTile := container.NewPadded(tile)
+	// return paddedTile
+
+	////Try to set the size of the tile when created
+	//tile.Resize(fyne.NewSize(tile.Size().Width*2,tile.Size().Height))
+	//tile.NewSize(fyne.NewSize(100, 100))
 
 	return tile
 }
 
 func getBoardTiles() *fyne.Container {
 	var gridSize = fyne.NewSize(4, 4)
-	board := container.New(layout.NewGridLayout(int(gridSize.Width)))
+	//board := container.New(layout.NewGridLayout(int(gridSize.Width)))
+	//board := container.New(layout.NewGridWrapLayout(fyne.NewSize(200, 100)))
+	board := container.NewHBox() //create new layout that is this, but has wrap capabilites
 
 	for i := 0; i < int(gridSize.Width)*int(gridSize.Height); i++ {
 		//tile := widget.NewCard("title", fmt.Sprintf("%v", i), canvas.NewImageFromResource(theme.FyneLogo()))
 		tile := getTile(i)
 
 		if i == 6 || i == 8 || i == 9 {
+			//tests if you can have empty space//yes
 			board.Add(layout.NewSpacer())
 		} else {
+			////moved to tile createion
+			// if i == 5 {
+			// 	//test to see if you can make a object larger to fill up more space//No the grid is fixed
+			// 	tile.Resize(fyne.NewSize(tile.MinSize().Width*2, tile.MinSize().Height))
+			// }
 			board.Add(tile)
 		}
 	}
@@ -108,7 +152,9 @@ func getBoardTiles() *fyne.Container {
 func getBoard() *fyne.Container {
 	//img := canvas.NewImageFromResource(theme.FyneLogo())
 	board := getBoardTiles()
-	return container.New(layout.NewMaxLayout(), board)
+	//return container.New(layout.NewMaxLayout(), board)
+	return board
+
 }
 
 func getTimesTable(hourOffset, duration int) *widget.Table {
