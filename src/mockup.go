@@ -50,6 +50,18 @@ func getTopSpacer(width, hight float32) fyne.CanvasObject {
 	return spacer
 }
 
+func getEmptyTile(duration int) *fyne.Container {
+	tile := container.New(layout.NewVBoxLayout())
+	size := fyne.NewSize(200, 100)
+
+	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
+	durationLine := canvas.NewRectangle(testColor)
+	durationLine.SetMinSize(fyne.NewSize(size.Width*float32(duration), 0))
+	tile.Add(durationLine)
+
+	return tile
+}
+
 func getTile(taskTile, urlString string, duration int) *fyne.Container {
 	tile := container.New(layout.NewVBoxLayout())
 	size := fyne.NewSize(200, 100)
@@ -110,16 +122,35 @@ func getDaysTiles() *fyne.Container {
 
 	list := list.New()
 	list.PushBack(tileData)
+	tileData.Date = tileData.Date.Add(time.Hour)
+	list.PushBack(tileData)
+	tileData.Date = tileData.Date.Add(time.Hour)
+	list.PushBack(tileData)
+	tileData.Date = tileData.Date.Add(time.Hour * 2)
+	list.PushBack(tileData)
+	tileData.Date = tileData.Date.Add(time.Hour)
+	tileData.duration = 2
+	list.PushBack(tileData)
+	tileData.Date = tileData.Date.Add(time.Hour)
+	tileData.duration = 1
+	list.PushBack(tileData)
 
 	//run for the number of tiles for a time period, or run for a time period and get coresponding tiles
 	for i := 7; i < 20; i++ {
 
+		front := list.Front()
+		if front == nil {
+			i = 100
+			break
+		}
+
+		tileData = front.Value.(Tile)
 		tile := getTile(fmt.Sprintf("%v %v", tileData.tile, i), tileData.url, tileData.duration)
 
 		log.Printf("Inedex: %v tileTime: %v ", i, tileData.Date.Hour())
 
 		//figure out if the next tile is after than current time in loop
-		if tileData.Date.Hour() < i {
+		if tileData.Date.Hour() > i {
 			empty = true
 		} else {
 			empty = false
@@ -127,9 +158,14 @@ func getDaysTiles() *fyne.Container {
 
 		//need to figure out if there is a gap that needs to be added
 		if empty {
-			day.Add(layout.NewSpacer())
+			log.Printf("\tAdded empty tile")
+			//day.Add(layout.NewSpacer())//only works with set grid sizes
+			day.Add(getEmptyTile(1))
 		} else {
+			log.Printf("\tAdded new tile at time %v", tileData.Date.Hour())
+			//todo, might be the place to update the hour of the tile,
 			day.Add(tile)
+			list.Remove(list.Front())
 		}
 	}
 
