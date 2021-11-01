@@ -2,11 +2,12 @@ package main
 
 import (
 	src "somethingFyne/src"
+	//howTo "somethingFyne/howTo"
 )
 
 func main() {
-	//src.Welcome()
+	//howTo.Welcome()
 	src.Mockup()
-	//src.Grid()
-	//src.Border()
+	//howTo.Grid()
+	//howTo.Border()
 }

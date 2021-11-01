@@ -1,4 +1,4 @@
-package src
+package howTo
 
 import (
 	"fyne.io/fyne/v2/app"
