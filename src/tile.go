@@ -40,7 +40,7 @@ func getEmptyTile(duration int) *fyne.Container {
 func getTile(taskTile, urlString string, duration int) *fyne.Container {
 	tile := container.New(layout.NewVBoxLayout())
 
-	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
+	// enlarger := canvas.NewRectangle(theme.BackgroundColor()
 	durationLine := canvas.NewRectangle(util.GreenColor)
 	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(duration), util.TileLineHeight))
 	tile.Add(durationLine)
@@ -72,7 +72,7 @@ func getTile(taskTile, urlString string, duration int) *fyne.Container {
 }
 
 func getDaysTileData(day int) *list.List {
-	//this is where you'll have to get the data for tile for the given date and time, for a person
+	//this is where you'll have to get the data for tile for the given date and time, for a perso
 	taskTile := "Title"
 	url := "https://developer.fyne.io/api/v2.1/widget/hyperlink.html"
 	tileDuration := 1
@@ -148,3 +148,6 @@ func getDaysTiles(day int) *fyne.Container {
 
 	return daysTiles
 }
+
+
+
