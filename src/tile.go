@@ -1,7 +1,7 @@
 package src
 
 import (
-	"container/list"
+	"encoding/json"
 	"fmt"
 	"image/color"
 	"log"
@@ -19,11 +19,11 @@ import (
 
 // https://stackoverflow.com/questions/38775414/golang-date-time-struct
 type Tile struct {
-	tile     string
-	url      string
+	Heading  string
+	Url      string
 	Date     time.Time
-	duration int
-	color    color.Color
+	Duration int
+	Color    color.Color
 }
 
 func getEmptyTile(duration int) *fyne.Container {
@@ -37,28 +37,28 @@ func getEmptyTile(duration int) *fyne.Container {
 	return tile
 }
 
-func getTile(taskTile, urlString string, duration int) *fyne.Container {
-	tile := container.New(layout.NewVBoxLayout())
+func makeTileContainer(tile Tile) *fyne.Container {
+	tileContainer := container.New(layout.NewVBoxLayout())
 
-	// enlarger := canvas.NewRectangle(theme.BackgroundColor()
+	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
 	durationLine := canvas.NewRectangle(util.GreenColor)
-	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(duration), util.TileLineHeight))
-	tile.Add(durationLine)
+	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(tile.Duration), util.TileLineHeight))
+	tileContainer.Add(durationLine)
 
 	//url, _ := url.Parse("https://developer.fyne.io/api/v2.1/widget/hyperlink.html")
-	url, _ := url.Parse(urlString)
-	hyperlink := widget.NewHyperlink(taskTile, url)
-	tile.Add(hyperlink)
+	url, _ := url.Parse(tile.Url)
+	hyperlink := widget.NewHyperlink(tile.Heading, url)
+	tileContainer.Add(hyperlink)
 
 	toolbar := widget.NewToolbar(
 		widget.NewToolbarSeparator(),
 		widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
-			log.Printf("Edit %s\n", taskTile)
+			log.Printf("Edit %s\n", tile.Heading)
 		}),
 		//widget.NewToolbarSeparator(),
 		widget.NewToolbarAction(theme.MediaFastRewindIcon(), func() {}),
 		widget.NewToolbarAction(theme.MediaPauseIcon(), func() {
-			log.Printf("lock %s in time", taskTile)
+			log.Printf("lock %s in time", tile.Heading)
 		}),
 		widget.NewToolbarAction(theme.MediaFastForwardIcon(), func() {}),
 		widget.NewToolbarSpacer(),
@@ -66,38 +66,41 @@ func getTile(taskTile, urlString string, duration int) *fyne.Container {
 
 		widget.NewToolbarSeparator(),
 	)
-	tile.Add(toolbar)
+	tileContainer.Add(toolbar)
 
-	return tile
+	return tileContainer
 }
 
-func getDaysTileData(day int) *list.List {
-	//this is where you'll have to get the data for tile for the given date and time, for a perso
+type test struct {
+	One  string
+	Two  int
+	Date time.Time
+}
+
+func getDaysTileData(day int) []Tile {
+	//this is where you'll have to get the data for tile for the given date and time, for a person
 	taskTile := "Title"
 	url := "https://developer.fyne.io/api/v2.1/widget/hyperlink.html"
 	tileDuration := 1
-
 	dateData := time.Date(2021, time.December, 4, 9, 0, 0, 0, time.UTC)
-	fmt.Printf("Go launched at %s\n", dateData.Local())
+	color := util.GreenColor
 
-	tileData := Tile{tile: taskTile, url: url, Date: dateData, duration: tileDuration, color: theme.BackgroundColor()}
+	tile := Tile{Heading: taskTile, Url: url, Date: dateData, Duration: tileDuration, Color: color}
 
-	list := list.New()
-	list.PushBack(tileData)
-	tileData.Date = tileData.Date.Add(time.Hour)
-	list.PushBack(tileData)
-	tileData.Date = tileData.Date.Add(time.Hour)
-	list.PushBack(tileData)
-	tileData.Date = tileData.Date.Add(time.Hour * 2)
-	list.PushBack(tileData)
-	tileData.Date = tileData.Date.Add(time.Hour)
-	tileData.duration = 2
-	list.PushBack(tileData)
-	tileData.Date = tileData.Date.Add(time.Hour)
-	tileData.duration = 1
-	list.PushBack(tileData)
+	var tileList []Tile
 
-	return list
+	tileList = append(tileList, tile)
+	tile.Duration = 2
+	tile.Date = tile.Date.Add(time.Hour * 3)
+	tileList = append(tileList, tile)
+
+	t, err := json.Marshal(tileList)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	fmt.Println(string(t))
+
+	return tileList
 }
 
 func getDaysTiles(day int) *fyne.Container {
@@ -107,21 +110,24 @@ func getDaysTiles(day int) *fyne.Container {
 	empty := false
 
 	//run for the number of tiles for a time period, or run for a time period and get coresponding tiles
-	for i := util.FirstTimeShown; i < util.FirstTimeShown+util.TimesShown; i++ {
+	for i, h := 0, util.FirstTimeShown; h < util.FirstTimeShown+util.TimesShown; h++ {
 
-		front := tileList.Front()
-		if front == nil {
-			i = 100
+		if len(tileList) == i {
+			h = 100
 			break
 		}
+		var tileData Tile = tileList[i]
 
-		tileData := front.Value.(Tile)
-		tile := getTile(fmt.Sprintf("%v %v", tileData.tile, i), tileData.url, tileData.duration)
+		//tileData := front.Value.(Tile)
+		//tileData := Tile{tile: taskTile, url: url, Date: dateData, duration: tileDuration, color: theme.BackgroundColor()}
+		tileData.Heading = fmt.Sprintf("%v %v", tileData.Heading, h)
+		tile := makeTileContainer(tileData)
+		// tile := makeTile(fmt.Sprintf("%v %v", tileData.heading, i), tileData.url, tileData.duration)
 
-		log.Printf("Inedex: %v tileTime: %v ", i, tileData.Date.Hour())
+		//log.Printf("Inedex: %v tileTime: %v ", i, tileData.Date.Hour())
 
 		//figure out if the next tile is after than current time in loop
-		if tileData.Date.Hour() > i {
+		if tileData.Date.Hour() > h {
 			empty = true
 		} else {
 			empty = false
@@ -136,18 +142,17 @@ func getDaysTiles(day int) *fyne.Container {
 			log.Printf("\tAdded new tile at time %v", tileData.Date.Hour())
 			//todo, might be the place to update the hour of the tile,
 			daysTiles.Add(tile)
-			tileList.Remove(tileList.Front())
+			//tileList.Remove(tileList.Front())
+			i++
 		}
+		fmt.Printf("index %v, hour %v\n", i, h)
 	}
 
-	if tileList.Front() == nil {
-		log.Printf("No more tiles for day %v", day)
-	} else {
-		log.Printf("Need to Carry over Tiles to next day(%v)", day+1)
-	}
+	// if tileList.len == i {
+	// 	log.Printf("No more tiles for day %v", day)
+	// } else {
+	// 	log.Printf("Need to Carry over Tiles to next day(%v)", day+1)
+	// }
 
 	return daysTiles
 }
-
-
-
