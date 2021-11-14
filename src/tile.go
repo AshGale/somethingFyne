@@ -105,57 +105,57 @@ func makeTileContainer(tile Tile) *fyne.Container {
 	return tileContainer
 }
 
-func getDaysTiles(day int) *fyne.Container {
-	daysTiles := container.NewHBox() //create new layout that is this, but has wrap capabilites
-	tileList := getDaysTileData(day)
-	empty := false
-
-	//run for the number of tiles for a time period, or run for a time period and get coresponding tiles
-	for i, h := 0, util.FirstTimeShown; h < util.FirstTimeShown+util.TimesShown; {
-
-		if len(tileList) == i {
-			h = 100
-			break
-		}
-		var tileData Tile = tileList[i]
-
-		//tileData := front.Value.(Tile)
-		//tileData := Tile{tile: taskTile, url: url, Date: dateData, duration: tileDuration, color: theme.BackgroundColor()}
-		//tileData.Heading = fmt.Sprintf("%v %v", tileData.Heading, h)
-		tile := makeTileContainer(tileData)
-		// tile := makeTile(fmt.Sprintf("%v %v", tileData.heading, i), tileData.url, tileData.duration)
-
-		//log.Printf("Inedex: %v tileTime: %v ", i, tileData.Date.Hour())
-
-		//figure out if the next tile is after than current time in loop
-		if tileData.Date.Hour() > h {
-			empty = true
-		} else {
-			empty = false
-		}
-
-		//need to figure out if there is a gap that needs to be added
-		if empty {
-			log.Printf("\tEmpty tile at %v", h)
-			//daysTiles.Add(layout.NewSpacer())//only works with set grid sizes
-			daysTiles.Add(getEmptyTile(1))
-			h++
-		} else {
-			log.Printf("\tAdd tile at time %v", h)
-			//todo, might be the place to update the hour of the tile,
-			daysTiles.Add(tile)
-			//tileList.Remove(tileList.Front())
-			i++
-			h += tileData.Duration
-		}
-		fmt.Printf("index %v, hour %v\n", i, h)
-	}
-
-	// if tileList.len == i {
-	// 	log.Printf("No more tiles for day %v", day)
-	// } else {
-	// 	log.Printf("Need to Carry over Tiles to next day(%v)", day+1)
-	// }
-
-	return daysTiles
-}
+// func getDaysTiles(day int) *fyne.Container {
+// 	daysTiles := container.NewHBox() //create new layout that is this, but has wrap capabilites
+// 	tileList := getDaysTileData(day)
+// 	empty := false
+//
+// 	//run for the number of tiles for a time period, or run for a time period and get coresponding tiles
+// 	for i, h := 0, util.FirstTimeShown; h < util.FirstTimeShown+util.TimesShown; {
+//
+// 		if len(tileList) == i {
+// 			h = 100
+// 			break
+// 		}
+// 		var tileData Tile = tileList[i]
+//
+// 		//tileData := front.Value.(Tile)
+// 		//tileData := Tile{tile: taskTile, url: url, Date: dateData, duration: tileDuration, color: theme.BackgroundColor()}
+// 		//tileData.Heading = fmt.Sprintf("%v %v", tileData.Heading, h)
+// 		tile := makeTileContainer(tileData)
+// 		// tile := makeTile(fmt.Sprintf("%v %v", tileData.heading, i), tileData.url, tileData.duration)
+//
+// 		//log.Printf("Inedex: %v tileTime: %v ", i, tileData.Date.Hour())
+//
+// 		//figure out if the next tile is after than current time in loop
+// 		if tileData.Date.Hour() > h {
+// 			empty = true
+// 		} else {
+// 			empty = false
+// 		}
+//
+// 		//need to figure out if there is a gap that needs to be added
+// 		if empty {
+// 			log.Printf("\tEmpty tile at %v", h)
+// 			//daysTiles.Add(layout.NewSpacer())//only works with set grid sizes
+// 			daysTiles.Add(getEmptyTile(1))
+// 			h++
+// 		} else {
+// 			log.Printf("\tAdd tile at time %v", h)
+// 			//todo, might be the place to update the hour of the tile,
+// 			daysTiles.Add(tile)
+// 			//tileList.Remove(tileList.Front())
+// 			i++
+// 			h += tileData.Duration
+// 		}
+// 		fmt.Printf("index %v, hour %v\n", i, h)
+// 	}
+//
+// 	// if tileList.len == i {
+// 	// 	log.Printf("No more tiles for day %v", day)
+// 	// } else {
+// 	// 	log.Printf("Need to Carry over Tiles to next day(%v)", day+1)
+// 	// }
+//
+// 	return daysTiles
+// }
