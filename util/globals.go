@@ -18,7 +18,7 @@ var DaysShown int = 5
 var FirstDayShown int = 4
 
 var TimesShown int = 13
-var FirstTimeShown int = 7
+var FirstTimeShown int = 8
 
 // type Constants struct {
 // 	testColor  color.Color

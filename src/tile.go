@@ -48,21 +48,24 @@ func getEmptyTile(duration int) *fyne.Container {
 	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(duration), 0))
 	tile.Add(durationLine)
 
+	addToolbar := getEmptyTileToolbar()
+	tile.Add(container.New(layout.NewCenterLayout(), addToolbar)) //nb vertical heigh is min currently
+
 	return tile
 }
 
-func makeTileContainer(tile Tile) *fyne.Container {
-	tileContainer := container.New(layout.NewVBoxLayout())
+func getEmptyTileToolbar() *widget.Toolbar {
+	toolbar := widget.NewToolbar(
+		widget.NewToolbarSpacer(),
+		widget.NewToolbarAction(theme.FolderNewIcon(), func() {
+			log.Printf("Creating New Tile %s\n", "")
+		}),
+		widget.NewToolbarSpacer(),
+	)
+	return toolbar
+}
 
-	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
-	durationLine := canvas.NewRectangle(tile.Color)
-	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(tile.Duration), util.TileLineHeight))
-	tileContainer.Add(durationLine)
-
-	//url, _ := url.Parse("https://developer.fyne.io/api/v2.1/widget/hyperlink.html")
-	url, _ := url.Parse(tile.Url)
-	hyperlink := widget.NewHyperlink(tile.Heading, url)
-	tileContainer.Add(hyperlink)
+func getTileToolbar(tile Tile) *widget.Toolbar {
 
 	toolbar := widget.NewToolbar(
 		widget.NewToolbarSeparator(),
@@ -80,6 +83,23 @@ func makeTileContainer(tile Tile) *fyne.Container {
 
 		widget.NewToolbarSeparator(),
 	)
+	return toolbar
+}
+
+func makeTileContainer(tile Tile) *fyne.Container {
+	tileContainer := container.New(layout.NewVBoxLayout())
+
+	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
+	durationLine := canvas.NewRectangle(tile.Color)
+	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(tile.Duration), util.TileLineHeight))
+	tileContainer.Add(durationLine)
+
+	//url, _ := url.Parse("https://developer.fyne.io/api/v2.1/widget/hyperlink.html")
+	url, _ := url.Parse(tile.Url)
+	hyperlink := widget.NewHyperlink(tile.Heading, url)
+	tileContainer.Add(hyperlink)
+
+	toolbar := getTileToolbar(tile)
 	tileContainer.Add(toolbar)
 
 	return tileContainer
