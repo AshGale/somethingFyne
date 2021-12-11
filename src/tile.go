@@ -79,7 +79,9 @@ func getTileToolbar(tile Tile) *widget.Toolbar {
 		}),
 		widget.NewToolbarAction(theme.MediaFastForwardIcon(), func() {}),
 		widget.NewToolbarSpacer(),
-		widget.NewToolbarAction(theme.MenuIcon(), func() {}),
+		widget.NewToolbarAction(theme.MenuIcon(), func() {
+			//func NewPopUpMenu(menu *fyne.Menu, c fyne.Canvas) *PopUp
+		}),
 
 		widget.NewToolbarSeparator(),
 	)
