@@ -1,8 +1,8 @@
 package main
 
 import (
-	src "somethingFyne/src"
 	//howTo "somethingFyne/howTo"
+	src "somethingFyne/src"
 )
 
 func main() {
@@ -10,4 +10,5 @@ func main() {
 	src.Mockup()
 	//howTo.Grid()
 	//howTo.Border()
+	//howTo.PopuP()
 }
