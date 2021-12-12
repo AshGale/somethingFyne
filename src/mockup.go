@@ -12,10 +12,12 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var App fyne.App
+
 //A POC for a tabs with content view
 func Mockup() {
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Mockup POC")
+	App = app.New()
+	myWindow := App.NewWindow("Mockup POC")
 	myWindow.Resize(util.DefaultWindowSize)
 
 	tabs := container.NewAppTabs(

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"somethingFyne/util"
+	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -40,7 +41,7 @@ func getDaysTileData(day int) []Tile {
 	return tileList
 }
 
-func getEmptyTile(duration int) *fyne.Container {
+func getEmptyTile(duration, day, hour int) *fyne.Container {
 	tile := container.New(layout.NewVBoxLayout())
 
 	// enlarger := canvas.NewRectangle(theme.BackgroundColor())
@@ -48,17 +49,107 @@ func getEmptyTile(duration int) *fyne.Container {
 	durationLine.SetMinSize(fyne.NewSize(util.TileSize.Width*float32(duration), 0))
 	tile.Add(durationLine)
 
-	addToolbar := getEmptyTileToolbar()
+	addToolbar := getEmptyTileToolbar(day, hour)
 	tile.Add(container.New(layout.NewCenterLayout(), addToolbar)) //nb vertical heigh is min currently
 
 	return tile
 }
 
-func getEmptyTileToolbar() *widget.Toolbar {
+func newTilePopUp(channelTile chan Tile, newTile *Tile) {
+	win := App.NewWindow("Create New Tile")
+
+	headingLabel := widget.NewLabel("Heading:")
+	urlLabel := widget.NewLabel("External Url:")
+	yearLabel := widget.NewLabel("Year:")
+	dayLabel := widget.NewLabel("Day:")
+	hourLabel := widget.NewLabel("Hour:")
+	durationLabel := widget.NewLabel("Duration:")
+	colorLabel := widget.NewLabel("TileColor:")
+
+	headingInput := widget.NewEntry()
+	urlInput := widget.NewEntry()
+	yearInput := widget.NewEntry()
+	dayInput := widget.NewEntry()
+	hourInput := widget.NewEntry()
+	durationInput := widget.NewEntry()
+
+	headingInput.SetPlaceHolder("Heading...")
+	urlInput.SetPlaceHolder("External link...")
+	yearInput.Text = fmt.Sprint(newTile.Date.Year())
+	dayInput.Text = fmt.Sprint(newTile.Date.Day())
+	hourInput.Text = fmt.Sprint(newTile.Date.Hour())
+	durationInput.SetPlaceHolder("Whole numbers only...") //todo select
+
+	colorInput := widget.NewSelect([]string{"Red", "Green", "Yellow", "Blue"}, func(value string) {
+		log.Println("Select set to", value)
+		switch value {
+		case "Red":
+			newTile.Color = util.RedColor
+		case "Green":
+			newTile.Color = util.GreenColor
+		case "Yellow":
+			newTile.Color = util.YellowColor
+		case "Blue":
+			newTile.Color = util.BlueColor
+		default:
+			newTile.Color = util.GreyColor
+		}
+	})
+
+	saveButton := widget.NewButton("Save", func() {
+		log.Printf("sending to Main screen: %v", headingInput.Text)
+		newTile.Heading = headingInput.Text
+		newTile.Url = urlInput.Text
+
+		intYear, _ := strconv.ParseInt(yearInput.Text, 0, 64)
+		intDay, _ := strconv.ParseInt(dayInput.Text, 0, 64)
+		intHour, _ := strconv.ParseInt(hourInput.Text, 0, 64)
+		intDuration, _ := strconv.ParseInt(durationInput.Text, 0, 64)
+
+		newTile.Date = time.Date(int(intYear), newTile.Date.Month(), int(intDay), int(intHour), 0, 0, 0, newTile.Date.Location())
+		newTile.Duration = int(intDuration)
+
+		channelTile <- *newTile
+		win.Close()
+	})
+
+	cancelButton := widget.NewButton("Cancel", func() {
+		channelTile <- Tile{}
+		win.Close()
+	})
+
+	formContainer := container.New(layout.NewFormLayout(),
+		headingLabel, headingInput, urlLabel, urlInput,
+		yearLabel, yearInput, dayLabel, dayInput, hourLabel, hourInput, durationLabel, durationInput,
+		colorLabel, colorInput)
+	optionContainer := container.New(layout.NewHBoxLayout(), cancelButton, saveButton)
+
+	win.SetContent(container.New(layout.NewVBoxLayout(), formContainer, optionContainer))
+	win.Resize(fyne.NewSize(400, 500))
+	//	win.SetOnClosed(func() { waiterText <- textInput.Text })
+	win.Show()
+}
+
+func createNewTileWindow(day, hour int) {
+	log.Printf("Creating New Tile at Day:%v Hour:%v\n", day, hour)
+	newTile := Tile{Heading: "", Url: "", Date: time.Now(), Duration: 1}
+	newTile.Date = time.Date(newTile.Date.Year(), newTile.Date.Month(), day, hour, 0, 0, 0, newTile.Date.Location())
+	channelTile := make(chan Tile)
+	newTilePopUp(channelTile, &newTile)
+
+	//wait till the popup is finished
+	newTile = <-channelTile
+
+	//add new tile to the day, and to the board <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+	log.Printf("Returned From popup '%+v'", newTile)
+}
+
+func getEmptyTileToolbar(day, hour int) *widget.Toolbar {
 	toolbar := widget.NewToolbar(
 		widget.NewToolbarSpacer(),
 		widget.NewToolbarAction(theme.FolderNewIcon(), func() {
-			log.Printf("Creating New Tile %s\n", "")
+			go createNewTileWindow(day, hour)
 		}),
 		widget.NewToolbarSpacer(),
 	)

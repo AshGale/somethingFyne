@@ -129,7 +129,7 @@ func getDaysTiles(day int) *fyne.Container {
 		//is there is a gap that needs to be added
 		if empty {
 			log.Printf("\tEmpty tile at %v", h)
-			daysTiles.Add(getEmptyTile(1))
+			daysTiles.Add(getEmptyTile(1, day, h))
 			h++
 		} else {
 			log.Printf("\tAdd tile at time %v", h)
