@@ -1,7 +1,6 @@
 package howTo
 
 import (
-	"fmt"
 	"log"
 
 	"fyne.io/fyne/v2"
@@ -18,41 +17,41 @@ func PopuP() {
 	myWindow.Resize(fyne.NewSize(300, 100))
 
 	label := widget.NewLabel("")
+	button := widget.NewButton("create popup",
+		func() { go popupButton(myApp, label) })
 
-	button := widget.NewButton("create popup", func() {
-		log.Println("Button pressed")
-		text := "before"
-
-		//https://goinbigdata.com/golang-wait-for-all-goroutines-to-finish/
-		waiter := make(chan bool)
-		showPopUp(myApp, &text, waiter)
-		<-waiter
-		label.Text = fmt.Sprintf("from popup: '%+q'", text)
-		label.Refresh()
-
-		log.Printf("Returned From popup '%+q'", text)
-	})
-
-	//container.New(layout.NewCenterLayout(), button)
 	myWindow.SetContent(container.New(layout.NewVBoxLayout(), button, label))
 	myWindow.ShowAndRun()
 }
 
-func showPopUp(a fyne.App, text *string, waiter chan bool) {
+func popupButton(myApp fyne.App, label *widget.Label) {
+	log.Println("Button pressed")
+	text := "before"
+
+	//wait till the popup is finished
+	waiterText := make(chan string)
+	showPopUp(myApp, waiterText)
+	//wait till the popup is finished
+	text = <-waiterText
+	label.Text = label.Text + "|" + text
+	label.Refresh()
+	log.Printf("Returned From popup '%+q'", text)
+}
+
+func showPopUp(a fyne.App, waiterText chan string) {
 	//https://developer.fyne.io/tour/basics/windows.html
 	win := a.NewWindow("Popup window example")
-
 	textInput := widget.NewEntry()
 	textInput.SetPlaceHolder("Enter text...")
 
 	popupButton := widget.NewButton("Close", func() {
-		log.Println("closing popup")
-		*text = textInput.Text
-		waiter <- true
+		log.Printf("sending to Main screen: %q", textInput.Text)
+		waiterText <- textInput.Text
 		win.Close()
 	})
 
 	win.SetContent(container.New(layout.NewVBoxLayout(), textInput, popupButton))
 	win.Resize(fyne.NewSize(200, 100))
+	//	win.SetOnClosed(func() { waiterText <- textInput.Text })
 	win.Show()
 }
